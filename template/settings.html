@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings - LifeLog{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <div class="settings-header">
+        <div class="header-content">
+            <h1><i class="fas fa-cog"></i> Account Settings</h1>
+            <p class="header-subtitle">Manage your profile and preferences</p>
+        </div>
+        <div class="header-decoration">
+            <i class="fas fa-user-cog"></i>
+            <i class="fas fa-shield-alt"></i>
+            <i class="fas fa-file-export"></i>
+        </div>
+    </div>
+
+    <div class="settings-grid">
+        <div class="settings-card">
+            <div class="card-header">
+                <i class="fas fa-user"></i>
+                <h2>Profile Information</h2>
+            </div>
+            <form action="{{ url_for('settings') }}" method="POST" class="settings-form">
+                <input type="hidden" name="action" value="update_profile">
+                <div class="form-group">
+                    <label for="fullname">
+                        <i class="fas fa-user-circle"></i>
+                        Full Name
+                    </label>
+                    <input type="text" id="fullname" name="fullname" value="{{ fullname }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-at"></i>
+                        Username
+                    </label>
+                    <input type="text" id="username" value="{{ username }}" disabled>
+                    <small>Username cannot be changed</small>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Update Profile
+                </button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <div class="card-header">
+                <i class="fas fa-lock"></i>
+                <h2>Change Password</h2>
+            </div>
+            <form action="{{ url_for('settings') }}" method="POST" class="settings-form">
+                <input type="hidden" name="action" value="change_password">
+                <div class="form-group">
+                    <label for="current_password">
+                        <i class="fas fa-key"></i>
+                        Current Password
+                    </label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">
+                        <i class="fas fa-lock"></i>
+                        New Password
+                    </label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">
+                        <i class="fas fa-check-circle"></i>
+                        Confirm New Password
+                    </label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-key"></i>
+                    Change Password
+                </button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <div class="card-header">
+                <i class="fas fa-file-export"></i>
+                <h2>Export Data</h2>
+            </div>
+            <div class="card-content">
+                <p>Download all your diary entries as a JSON file for backup or analysis.</p>
+                <form action="{{ url_for('settings') }}" method="POST" class="settings-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="export_data">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        Export JSON
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="card-header">
+                <i class="fas fa-file-alt"></i>
+                <h2>Generate Reports</h2>
+            </div>
+            <div class="card-content">
+                <p>Create detailed PDF reports of your diary entries.</p>
+                <div class="report-options">
+                    <form action="{{ url_for('generate_report') }}" method="POST" class="report-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="report_type" value="all">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-pdf"></i>
+                            Complete Report
+                        </button>
+                    </form>
+                    
+                    <form action="{{ url_for('generate_report') }}" method="POST" class="report-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="report_type" value="monthly">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-alt"></i>
+                            Monthly Report
+                        </button>
+                    </form>
+                    
+                    <form action="{{ url_for('generate_report') }}" method="POST" class="report-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="report_type" value="mood">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-smile"></i>
+                            Mood Analysis
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

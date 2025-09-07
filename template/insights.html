@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block title %}Insights - LifeLog{% endblock %}
+
+{% block content %}
+<div class="insights-page">
+    <div class="insights-header">
+        <div class="header-content">
+            <h1><i class="fas fa-chart-line"></i> Your Diary Insights</h1>
+            <p class="header-subtitle">Discover patterns and trends in your daily reflections</p>
+        </div>
+        <div class="header-decoration">
+            <i class="fas fa-chart-bar"></i>
+            <i class="fas fa-chart-pie"></i>
+            <i class="fas fa-chart-area"></i>
+        </div>
+    </div>
+
+    <div class="insights-stats">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="stat-value">{{ total_entries }}</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-smile"></i></div>
+            <div class="stat-value">{{ positive_moods }}%</div>
+            <div class="stat-label">Positive Moods</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-pen-fancy"></i></div>
+            <div class="stat-value">{{ avg_words }}</div>
+            <div class="stat-label">Avg. Words/Entry</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-value">{{ writing_streak }}</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+    </div>
+
+    <div class="insights-grid">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2><i class="fas fa-heart"></i> Daily Mood Trends</h2>
+                <p class="chart-description">Track your emotional journey over time</p>
+            </div>
+            <div class="chart-container">
+                {% if mood_chart %}
+                    <img src="data:image/png;base64,{{ mood_chart }}" alt="Daily Mood Trends">
+                {% else %}
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Your mood trends will appear here after more entries</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2><i class="fas fa-font"></i> Word Frequency</h2>
+                <p class="chart-description">Most commonly used words in your entries</p>
+            </div>
+            <div class="chart-container">
+                {% if word_chart %}
+                    <img src="data:image/png;base64,{{ word_chart }}" alt="Word Frequency">
+                {% else %}
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>Your word frequency chart will appear here after more entries</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2><i class="fas fa-clock"></i> Writing Patterns</h2>
+                <p class="chart-description">When you write most frequently</p>
+            </div>
+            <div class="chart-container">
+                {% if patterns_chart %}
+                    <img src="data:image/png;base64,{{ patterns_chart }}" alt="Writing Patterns">
+                {% else %}
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-area"></i>
+                        <p>Your writing patterns will appear here after more entries</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="insights-summary">
+        <div class="summary-card">
+            <h3><i class="fas fa-lightbulb"></i> Key Insights</h3>
+            <ul class="insights-list">
+                {% for insight in key_insights %}
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ insight }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Entry - LifeLog{% endblock %}
+
+{% block content %}
+<div class="edit-entry-page">
+    <div class="edit-entry-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1><i class="fas fa-edit"></i> Edit Diary Entry</h1>
+                <div class="entry-date-display">
+                    <i class="far fa-calendar-alt"></i>
+                    {{ entry.date|datetime('%A, %B %d, %Y') }}
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Entry
+                </a>
+            </div>
+        </div>
+        <div class="header-decoration">
+            <div class="floating-icon icon-1"><i class="fas fa-pen-fancy"></i></div>
+            <div class="floating-icon icon-2"><i class="fas fa-feather-alt"></i></div>
+            <div class="floating-icon icon-3"><i class="fas fa-book-open"></i></div>
+        </div>
+    </div>
+    
+    <div class="edit-entry-container">
+        <form action="{{ url_for('edit_entry', entry_id=entry.id) }}" method="POST" class="edit-entry-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="edit-entry-toolbar">
+                <div class="toolbar-section">
+                    <div class="form-group date-picker">
+                        <label for="entry_date"><i class="far fa-calendar-alt"></i> Entry Date</label>
+                        <input type="date" id="entry_date" name="entry_date" value="{{ entry.date }}" required>
+                    </div>
+                    
+                    <div class="mood-selector">
+                        <label><i class="far fa-smile"></i> Current Mood</label>
+                        <div class="mood-options">
+                            <label class="mood-option positive">
+                                <input type="radio" name="mood" value="Positive" {% if entry.mood == 'Positive' %}checked{% endif %}>
+                                <div class="mood-content">
+                                    <span class="mood-emoji">😊</span>
+                                    <span class="mood-label">Positive</span>
+                                </div>
+                            </label>
+                            <label class="mood-option neutral">
+                                <input type="radio" name="mood" value="Neutral" {% if entry.mood == 'Neutral' %}checked{% endif %}>
+                                <div class="mood-content">
+                                    <span class="mood-emoji">😐</span>
+                                    <span class="mood-label">Neutral</span>
+                                </div>
+                            </label>
+                            <label class="mood-option negative">
+                                <input type="radio" name="mood" value="Negative" {% if entry.mood == 'Negative' %}checked{% endif %}>
+                                <div class="mood-content">
+                                    <span class="mood-emoji">😔</span>
+                                    <span class="mood-label">Negative</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="diary-content">
+                <div class="text-area-wrapper">
+                    <textarea id="diary-text" name="diary_text" placeholder="Start typing your thoughts..." required>{{ entry.text }}</textarea>
+                    <div class="editor-tools">
+                        <button type="button" class="tool-btn" title="Bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="tool-btn" title="Italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="tool-btn" title="Underline"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="tool-btn" title="Add Link"><i class="fas fa-link"></i></button>
+                    </div>
+                </div>
+                <div class="editor-footer">
+                    <div class="editor-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-font"></i>
+                            <span id="word-count">{{ entry.word_count }}</span>
+                            <span class="stat-label">words</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-keyboard"></i>
+                            <span id="char-count">{{ entry.text|length }}</span>
+                            <span class="stat-label">characters</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="far fa-clock"></i>
+                            <span id="reading-time">{{ (entry.word_count / 200)|round|int }}</span>
+                            <span class="stat-label">min read</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="diary-actions">
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="btn btn-secondary btn-full">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="autosave-notification">
+    <i class="fas fa-save"></i> Autosaved
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update word count on input
+    const diaryText = document.getElementById('diary-text');
+    const wordCount = document.getElementById('word-count');
+    const charCount = document.getElementById('char-count');
+    const readingTime = document.getElementById('reading-time');
+    
+    diaryText.addEventListener('input', function() {
+        const text = this.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        const chars = text.length;
+        const readTime = Math.ceil(words / 200); // Average reading speed: 200 words per minute
+        
+        wordCount.textContent = words;
+        charCount.textContent = chars;
+        readingTime.textContent = readTime;
+    });
+    
+    // Auto-resize textarea
+    function autoResize() {
+        diaryText.style.height = 'auto';
+        diaryText.style.height = (diaryText.scrollHeight) + 'px';
+    }
+    
+    // Initial resize
+    window.addEventListener('load', autoResize);
+    
+    // Resize on input
+    diaryText.addEventListener('input', autoResize);
+    
+    // Add form submission debugging
+    document.querySelector('form').addEventListener('submit', function(e) {
+        console.log('Form submission:');
+        const formData = new FormData(this);
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+    });
+    
+    // Autosave functionality
+    let autosaveTimeout;
+    
+    diaryText.addEventListener('input', function() {
+        clearTimeout(autosaveTimeout);
+        autosaveTimeout = setTimeout(function() {
+            localStorage.setItem('diary_autosave_{{ entry.id }}', diaryText.value);
+            console.log('Autosaved at ' + new Date().toLocaleTimeString());
+            
+            // Show autosave notification
+            const notification = document.querySelector('.autosave-notification');
+            notification.classList.add('show');
+            
+            // Remove notification after 2 seconds
+            setTimeout(function() {
+                notification.classList.remove('show');
+            }, 2000);
+        }, 3000); // Autosave after 3 seconds of inactivity
+    });
+    
+    // Check for autosaved content
+    window.addEventListener('load', function() {
+        const autosavedContent = localStorage.getItem('diary_autosave_{{ entry.id }}');
+        
+        if (autosavedContent && autosavedContent !== diaryText.value) {
+            if (confirm('We found an autosaved version of this entry. Would you like to restore it?')) {
+                diaryText.value = autosavedContent;
+                autoResize();
+                
+                // Update counts
+                const text = diaryText.value.trim();
+                const words = text ? text.split(/\s+/).length : 0;
+                const chars = text.length;
+                const readTime = Math.ceil(words / 200);
+                
+                wordCount.textContent = words;
+                charCount.textContent = chars;
+                readingTime.textContent = readTime;
+            } else {
+                localStorage.removeItem('diary_autosave_{{ entry.id }}');
+            }
+        }
+    });
+
+    // Editor tools functionality
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const command = this.getAttribute('title').toLowerCase();
+            document.execCommand(command, false, null);
+            diaryText.focus();
+        });
+    });
+</script>
+{% endblock %}
+
+
+
+

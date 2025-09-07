@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - LifeLog{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section with Animated Background -->
+    <div class="dashboard-welcome">
+        <div class="welcome-content">
+            <h1>Welcome back, {{ name }}! 👋</h1>
+            <p>Track your thoughts and emotions with your personal diary</p>
+            <div class="welcome-decoration">
+                <i class="fas fa-feather-alt"></i>
+                <i class="fas fa-pen-fancy"></i>
+                <i class="fas fa-bookmark"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid with Hover Effects -->
+    <div class="dashboard-stats">
+        <div class="stat-card" data-aos="fade-up">
+            <div class="stat-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ entry_count }}</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+
+        <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="stat-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ streak }}</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+
+        <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-icon">
+                <i class="fas fa-pencil-alt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ avg_words }}</div>
+                <div class="stat-label">Avg. Words/Entry</div>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+
+        <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="stat-icon">
+                <i class="fas fa-smile"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ overall_mood }}</div>
+                <div class="stat-label">Overall Mood</div>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+        <!-- Left Column -->
+        <div class="dashboard-column">
+            <!-- Mood Chart Section with Enhanced Styling -->
+            <div class="dashboard-section glass-effect equal-height">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Mood Trends</h2>
+                    <p>Track your emotional journey over time</p>
+                </div>
+                <div class="chart-container">
+                    {% if mood_chart %}
+                        <img src="data:image/png;base64,{{ mood_chart }}" alt="Mood Trends" class="chart-image">
+                    {% else %}
+                        <div class="chart-placeholder">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Your mood trends will appear here after more entries</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="dashboard-column">
+            <!-- Recent Entries Section with Enhanced Cards -->
+            <div class="dashboard-section glass-effect equal-height">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Recent Entries</h2>
+                    <a href="{{ url_for('entries') }}" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="recent-entries">
+                    {% if recent_entries %}
+                        {% for entry in recent_entries %}
+                            <div class="entry-card" data-aos="fade-left" data-aos-delay="{{ loop.index * 100 }}">
+                                <div class="entry-header">
+                                    <div class="entry-date">
+                                        <i class="far fa-calendar-alt"></i>
+                                        {{ entry.date|datetime }}
+                                    </div>
+                                    <div class="entry-mood mood-{{ entry.mood|lower }}">
+                                        <i class="fas fa-{% if entry.mood == 'Positive' %}smile{% elif entry.mood == 'Negative' %}frown{% else %}meh{% endif %}"></i>
+                                        {{ entry.mood }}
+                                    </div>
+                                </div>
+                                <div class="entry-preview">{{ entry.text[:150] }}...</div>
+                                <div class="entry-footer">
+                                    <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="btn btn-primary">
+                                        Read More <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <h3>Start Your Journey</h3>
+                            <p>Begin your journaling adventure today!</p>
+                            <a href="{{ url_for('diary') }}" class="btn btn-primary">
+                                Write Your First Entry <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    // Initialize AOS (Animate On Scroll)
+    AOS.init({
+        duration: 800,
+        once: true
+    });
+
+    // Add hover effects for stat cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.classList.add('hover');
+        });
+        card.addEventListener('mouseleave', function() {
+            this.classList.remove('hover');
+        });
+    });
+
+    // Make sections equal height
+    function equalizeHeights() {
+        const sections = document.querySelectorAll('.equal-height');
+        let maxHeight = 0;
+        
+        sections.forEach(section => {
+            const height = section.offsetHeight;
+            maxHeight = Math.max(maxHeight, height);
+        });
+        
+        sections.forEach(section => {
+            section.style.height = maxHeight + 'px';
+        });
+    }
+
+    // Call on load and resize
+    window.addEventListener('load', equalizeHeights);
+    window.addEventListener('resize', equalizeHeights);
+</script>
+{% endblock %}
+
+
+
+

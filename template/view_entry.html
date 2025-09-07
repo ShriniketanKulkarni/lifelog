@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block title %}View Entry - LifeLog{% endblock %}
+
+{% block content %}
+<div class="view-entry-page">
+    <div class="view-entry-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="{{ url_for('entries') }}" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Entries
+                </a>
+                <h1>Diary Entry</h1>
+            </div>
+            <div class="header-decoration">
+                <i class="fas fa-feather-alt"></i>
+                <i class="fas fa-pen-fancy"></i>
+                <i class="fas fa-book"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-entry-container">
+        <div class="entry-metadata">
+            <div class="metadata-card">
+                <div class="metadata-item">
+                    <i class="far fa-calendar-alt"></i>
+                    <span>{{ entry.date|datetime('%A, %B %d, %Y') }}</span>
+                </div>
+                <div class="metadata-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>{{ entry.word_count }} words</span>
+                </div>
+                <div class="metadata-item mood-{{ entry.mood|lower }}">
+                    <i class="fas fa-smile{% if entry.mood == 'Neutral' %}-beam{% elif entry.mood == 'Negative' %}-frown{% endif %}"></i>
+                    <span>{{ entry.mood }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="entry-content">
+            {% if entry.original_text %}
+            <div class="translation-container">
+                <div class="text-box original">
+                    <div class="text-box-header">
+                        <i class="fas fa-language"></i>
+                        <span>Original ({{ entry.original_language }})</span>
+                    </div>
+                    <div class="text-box-content">
+                        {{ entry.original_text|nl2br }}
+                    </div>
+                </div>
+                <div class="translation-arrow">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="text-box translated">
+                    <div class="text-box-header">
+                        <i class="fas fa-globe-americas"></i>
+                        <span>English Translation</span>
+                    </div>
+                    <div class="text-box-content">
+                        {{ entry.text|nl2br }}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-box single">
+                <div class="text-box-content">
+                    {{ entry.text|nl2br }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="entry-actions">
+            <div class="action-buttons">
+                <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Entry
+                </a>
+                <button class="btn btn-danger" id="delete-btn">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
+            </div>
+            
+            <div class="navigation-buttons">
+                {% if prev_id %}
+                <a href="{{ url_for('view_entry', entry_id=prev_id) }}" class="btn btn-nav">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% else %}
+                <button class="btn btn-nav disabled" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                {% endif %}
+                
+                {% if next_id %}
+                <a href="{{ url_for('view_entry', entry_id=next_id) }}" class="btn btn-nav">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <button class="btn btn-nav disabled" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Delete Entry</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this entry? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-delete">Cancel</button>
+            <form action="{{ url_for('delete_entry', entry_id=entry.id) }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Modal functionality
+    const deleteBtn = document.getElementById('delete-btn');
+    const deleteModal = document.getElementById('delete-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const cancelDelete = document.getElementById('cancel-delete');
+    
+    deleteBtn.addEventListener('click', function() {
+        deleteModal.style.display = 'flex';
+    });
+    
+    closeModal.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+    });
+    
+    cancelDelete.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+    });
+    
+    window.addEventListener('click', function(event) {
+        if (event.target == deleteModal) {
+            deleteModal.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
+
+
+

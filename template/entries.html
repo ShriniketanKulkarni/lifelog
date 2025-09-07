@@ -1,0 +1,226 @@
+{% extends "layout.html" %}
+
+{% block title %}My Entries - LifeLog{% endblock %}
+
+{% block content %}
+<div class="entries-page">
+    <div class="entries-header">
+        <div class="header-content">
+            <div>
+                <h1><i class="fas fa-book-open"></i> My Journal Entries</h1>
+                <p class="header-subtitle">Browse, filter, and manage your diary entries</p>
+            </div>
+            <a href="{{ url_for('diary') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Entry
+            </a>
+        </div>
+        <div class="header-decoration">
+            <i class="fas fa-feather-alt"></i>
+            <i class="fas fa-pen-fancy"></i>
+            <i class="fas fa-book"></i>
+        </div>
+    </div>
+
+    <div class="entries-container">
+        <div class="entries-toolbar">
+            <div class="toolbar-left">
+                <div class="entries-count">
+                    <i class="fas fa-list"></i>
+                    <span>{{ entries|length }} Entries</span>
+                </div>
+                <div class="entries-filter">
+                    <select id="moodFilter" onchange="filterEntries()">
+                        <option value="">All Moods</option>
+                        <option value="positive">Positive</option>
+                        <option value="neutral">Neutral</option>
+                        <option value="negative">Negative</option>
+                    </select>
+                </div>
+                <div class="entries-sort">
+                    <select id="dateSort" onchange="sortEntries()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-secondary" onclick="exportEntries()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-danger" onclick="showDeleteModal()">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+
+        {% if entries %}
+        <div class="entries-grid">
+            {% for entry in entries %}
+            <div class="entry-card" data-mood="{{ entry.mood }}" data-date="{{ entry.date }}">
+                <div class="entry-checkbox">
+                    <input type="checkbox" name="entry-select" value="{{ entry.id }}">
+                </div>
+                <div class="entry-content">
+                    <div class="entry-header">
+                        <div class="entry-mood {{ entry.mood }}">
+                            <i class="fas fa-{% if entry.mood == 'positive' %}smile{% elif entry.mood == 'neutral' %}meh{% else %}frown{% endif %}"></i>
+                            {{ entry.mood|title }}
+                        </div>
+                        <div class="entry-date">
+                            <i class="far fa-calendar"></i>
+                            {{ entry.date }}
+                        </div>
+                    </div>
+                    <div class="entry-preview">
+                        {{ entry.text[:200] }}{% if entry.text|length > 200 %}...{% endif %}
+                    </div>
+                    <div class="entry-footer">
+                        <div class="entry-actions">
+                            <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="btn btn-xs btn-primary">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="btn btn-xs btn-secondary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-entries">
+            <div class="no-entries-content">
+                <div class="no-entries-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h2>No Entries Yet</h2>
+                <p>Start your journaling journey by creating your first entry.</p>
+                <a href="{{ url_for('diary') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create First Entry
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h2>
+            <span class="close-modal" onclick="closeDeleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete the selected entries? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" onclick="deleteSelectedEntries()">Delete</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterEntries() {
+    const mood = document.getElementById('moodFilter').value;
+    const entries = document.querySelectorAll('.entry-card');
+    
+    entries.forEach(entry => {
+        if (!mood || entry.dataset.mood === mood) {
+            entry.style.display = 'grid';
+        } else {
+            entry.style.display = 'none';
+        }
+    });
+}
+
+function sortEntries() {
+    const sortBy = document.getElementById('dateSort').value;
+    const grid = document.querySelector('.entries-grid');
+    const entries = Array.from(document.querySelectorAll('.entry-card'));
+    
+    entries.sort((a, b) => {
+        const dateA = new Date(a.dataset.date);
+        const dateB = new Date(b.dataset.date);
+        return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+    
+    entries.forEach(entry => grid.appendChild(entry));
+}
+
+function showDeleteModal() {
+    const selected = document.querySelectorAll('input[name="entry-select"]:checked');
+    if (selected.length === 0) {
+        alert('Please select entries to delete');
+        return;
+    }
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+function deleteSelectedEntries() {
+    const selected = document.querySelectorAll('input[name="entry-select"]:checked');
+    const entryIds = Array.from(selected).map(input => input.value);
+    
+    // Create form data
+    const formData = new FormData();
+    entryIds.forEach(id => {
+        formData.append('entry_ids[]', id);
+    });
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch('/entries/delete_multiple', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-Token': csrfToken
+        },
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting entries. Please try again.');
+    });
+}
+
+function exportEntries() {
+    const selected = document.querySelectorAll('input[name="entry-select"]:checked');
+    const entryIds = Array.from(selected).map(input => input.value);
+    
+    if (entryIds.length === 0) {
+        alert('Please select entries to export');
+        return;
+    }
+    
+    window.location.href = `/export_entries?ids=${entryIds.join(',')}`;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+}
+</script>
+{% endblock %}
+
+
+
+
